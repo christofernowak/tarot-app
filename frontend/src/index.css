@@ -1,0 +1,80 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0d0d16;
+  --bg2:       #13131f;
+  --bg3:       #1a1a2e;
+  --border:    rgba(139,130,220,0.18);
+  --border2:   rgba(139,130,220,0.32);
+  --purple:    #8b82dc;
+  --purple-lt: #b8b2f0;
+  --gold:      #c9a84c;
+  --gold-lt:   #e8c97a;
+  --text:      #e8e6f8;
+  --text2:     #9b97c0;
+  --text3:     #5e5b80;
+  --radius:    12px;
+  --radius-sm: 8px;
+}
+
+html { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.6; }
+
+body { min-height: 100vh; }
+
+h1,h2,h3,h4 { font-family: 'Cormorant Garamond', serif; font-weight: 500; line-height: 1.2; color: var(--text); }
+
+a { color: var(--purple-lt); text-decoration: none; }
+a:hover { color: var(--gold-lt); }
+
+button {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-sm);
+  transition: opacity .15s, transform .1s;
+}
+button:active { transform: scale(.97); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+input, select, textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--purple); }
+input::placeholder { color: var(--text3); }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes cardFlip {
+  0%   { transform: rotateY(0deg); }
+  50%  { transform: rotateY(90deg); }
+  100% { transform: rotateY(0deg); }
+}
+@keyframes shimmer {
+  0%,100% { opacity:.4; }
+  50%      { opacity:1; }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-up { animation: fadeUp .4s ease both; }
+.anim-delay-1 { animation-delay:.1s; }
+.anim-delay-2 { animation-delay:.2s; }
+.anim-delay-3 { animation-delay:.3s; }
