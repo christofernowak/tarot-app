@@ -17,6 +17,8 @@ import { validateEnv } from './config/validateEnv.js'
 validateEnv()
 
 const app = express()
+app.set('trust proxy', 1)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 const PORT = process.env.PORT || 3001
 
 // ── Segurança: headers HTTP seguros ──────────────────────────────────────────
