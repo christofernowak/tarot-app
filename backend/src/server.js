@@ -60,20 +60,7 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter)
 
 // ── Rate limiting restrito para autenticação ──────────────────────────────────
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10, // máx 10 tentativas de login por 15 min por IP
-  message: { error: 'Muitas tentativas de login. Aguarde 15 minutos.' },
-  skipSuccessfulRequests: true,
-})
-
-// ── Rate limiting para geração de leituras (custo de IA) ─────────────────────
-export const readingLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hora
-  max: 20,
-  keyGenerator: (req) => req.user?.id || req.ip, // por usuário se autenticado
-  message: { error: 'Limite de leituras por hora atingido.' },
-})
+import { authLimiter, readingLimiter } from './middleware/limiters.js'
 
 // ── Body parsing ─────────────────────────────────────────────────────────────
 // Rota de webhook do Stripe precisa do body RAW (antes do json parser)
