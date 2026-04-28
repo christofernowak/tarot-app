@@ -2,7 +2,7 @@
 // Cliente centralizado — todas as chamadas passam por aqui
 // Segurança: token JWT injetado automaticamente; nunca hardcoded
 
-const BASE = import.meta.env.VITE_API_URL || '/api'
+const BASE = import.meta.env.VITE_API_URL || 'https://tarot-app-production-44e9.up.railway.app/api'
 
 function getToken() {
   return localStorage.getItem('tarot_token')
