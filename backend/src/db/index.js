@@ -6,7 +6,7 @@ const { Pool } = pg
 // Pool de conexões — nunca criar uma nova conexão por request
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : false,
+  ssl: { rejectUnauthorized: false },  // ← sempre false, sem condição
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
