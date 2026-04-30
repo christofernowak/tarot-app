@@ -111,36 +111,48 @@ export function HistoryPage() {
 
               {/* Expanded detail */}
               {expanded === r.id && r._detail && (() => {
-                let parsed = {}
-                try { parsed = JSON.parse(r._detail.interpretation_text.match(/\{[\s\S]*\}/)?.[0] || '{}') } catch {}
-                return (
-                  <div style={{ borderTop:'1px solid var(--border)', padding:'20px 18px', background:'rgba(0,0,0,0.15)' }}>
-                    {/* Cards */}
-                    <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'16px' }}>
-                      {(JSON.parse(r.cards_json || '[]')).map((c, i) => (
-                        <div key={i} style={{ fontSize:'12px', padding:'4px 10px', borderRadius:'var(--radius-sm)', background:'rgba(139,130,220,0.1)', border:'1px solid var(--border)', color:'var(--text2)' }}>
-                          {c.name}{c.inverted ? ' ↓' : ''}
-                        </div>
-                      ))}
-                    </div>
+  let parsed = {}
+  try {
+    const text = r._detail.interpretation_text || ''
+    const match = text.match(/\{[\s\S]*\}/)
+    if (match) parsed = JSON.parse(match[0])
+  } catch {}
 
-                    {/* Synthesis */}
-                    {parsed.sintese && (
-                      <p style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'16px', lineHeight:1.8, color:'var(--text2)', marginBottom:'12px' }}>
-                        {parsed.sintese}
-                      </p>
-                    )}
+  const cardsList = (() => {
+    try { return JSON.parse(r.cards_json || '[]') } catch { return [] }
+  })()
 
-                    {/* Advice */}
-                    {r._detail.advice && (
-                      <div style={{ background:'rgba(201,168,76,0.06)', border:'1px solid rgba(201,168,76,0.18)', borderRadius:'var(--radius-sm)', padding:'12px 16px' }}>
-                        <p style={{ fontSize:'11px', color:'var(--gold)', marginBottom:'4px', letterSpacing:'.06em' }}>CONSELHO</p>
-                        <p style={{ fontFamily:'Cormorant Garamond, serif', fontStyle:'italic', fontSize:'15px', color:'var(--text)' }}>{r._detail.advice}</p>
-                      </div>
-                    )}
-                  </div>
-                )
-              })()}
+  return (
+    <div style={{ borderTop:'1px solid var(--border)', padding:'20px 18px', background:'rgba(0,0,0,0.15)' }}>
+      <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'16px' }}>
+        {cardsList.map((c, i) => (
+          <div key={i} style={{ fontSize:'12px', padding:'4px 10px', borderRadius:'var(--radius-sm)', background:'rgba(139,130,220,0.1)', border:'1px solid var(--border)', color:'var(--text2)' }}>
+            {c.name}{c.inverted ? ' ↓' : ''}
+          </div>
+        ))}
+      </div>
+
+      {parsed.sintese && (
+        <p style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'16px', lineHeight:1.8, color:'var(--text2)', marginBottom:'12px' }}>
+          {parsed.sintese}
+        </p>
+      )}
+
+      {!parsed.sintese && r._detail.interpretation_text && (
+        <p style={{ fontFamily:'Cormorant Garamond, serif', fontSize:'15px', lineHeight:1.8, color:'var(--text2)', marginBottom:'12px' }}>
+          {r._detail.interpretation_text.replace(/[{}"]/g, '').slice(0, 400)}...
+        </p>
+      )}
+
+      {r._detail.advice && (
+        <div style={{ background:'rgba(201,168,76,0.06)', border:'1px solid rgba(201,168,76,0.18)', borderRadius:'var(--radius-sm)', padding:'12px 16px' }}>
+          <p style={{ fontSize:'11px', color:'var(--gold)', marginBottom:'4px', letterSpacing:'.06em' }}>CONSELHO</p>
+          <p style={{ fontFamily:'Cormorant Garamond, serif', fontStyle:'italic', fontSize:'15px', color:'var(--text)' }}>{r._detail.advice}</p>
+        </div>
+      )}
+    </div>
+  )
+})()}
             </div>
           ))}
         </div>

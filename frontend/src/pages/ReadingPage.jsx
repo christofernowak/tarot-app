@@ -26,40 +26,64 @@ export function ReadingPage() {
   }
 
   async function handleReveal() {
-    setError('')
-    setStreaming(true)
-    setStreamText('')
-    setResult(null)
-    streamRef.current = ''
+  setError('')
+  setStreaming(true)
+  setStreamText('')
+  setResult(null)
+  streamRef.current = ''
 
-    const payload = {
-      cards: cards.map((c, i) => ({
-        ...c,
-        position: spread.slots[i] || `Posição ${i+1}`,
-      })),
-      spreadType,
-      focusArea,
-    }
-
-    try {
-      await api.stream(
-        '/reading',
-        payload,
-        (delta) => {
-          streamRef.current += delta
-          setStreamText(streamRef.current)
-        },
-        (data) => {
-          setResult(data.parsed)
-          setStreaming(false)
-          setStep('result')
-        }
-      )
-    } catch (err) {
-      setError(err.message || 'Erro ao gerar leitura.')
-      setStreaming(false)
-    }
+  const payload = {
+    cards: cards.map((c, i) => ({
+      ...c,
+      position: spread.slots[i] || `Posição ${i+1}`,
+    })),
+    spreadType,
+    focusArea,
   }
+
+  try {
+    await api.stream(
+      '/reading',
+      payload,
+      (delta) => {
+        streamRef.current += delta
+        setStreamText(streamRef.current)
+      },
+      (data) => {
+        // Tenta usar o parsed que veio do servidor
+        // Se não vier, faz o parse local do texto acumulado
+        let parsed = data?.parsed || {}
+        if (!parsed.titulo) {
+          try {
+            const match = streamRef.current.match(/\{[\s\S]*\}/)
+            if (match) parsed = JSON.parse(match[0])
+          } catch {}
+        }
+        setResult(parsed)
+        setStreaming(false)
+        setStep('result')
+      }
+    )
+  } catch (err) {
+    // Se stream fechou sem chamar onDone, tenta mostrar o que acumulou
+    if (streamRef.current.length > 100) {
+      try {
+        const match = streamRef.current.match(/\{[\s\S]*\}/)
+        if (match) {
+          setResult(JSON.parse(match[0]))
+          setStep('result')
+        } else {
+          setError(err.message || 'Erro ao gerar leitura.')
+        }
+      } catch {
+        setError(err.message || 'Erro ao gerar leitura.')
+      }
+    } else {
+      setError(err.message || 'Erro ao gerar leitura.')
+    }
+    setStreaming(false)
+  }
+}
 
   function handleReset() {
     setStep('config')
