@@ -35,43 +35,85 @@ export const api = {
 
   // Streaming SSE para leituras de tarô
   async stream(path, body, onDelta, onDone) {
-    const token = getToken()
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(body),
-    })
+  const token = getToken()
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  })
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || 'Erro ao iniciar leitura.')
-    }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || 'Erro ao iniciar leitura.')
+  }
 
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let accumulated = ''
 
+  try {
     while (true) {
       const { done, value } = await reader.read()
-      if (done) break
+
+      if (done) {
+        // Stream fechou — tenta extrair JSON do que acumulou
+        try {
+          const match = accumulated.match(/\{[\s\S]*\}/)
+          if (match) {
+            const parsed = JSON.parse(match[0])
+            onDone({ done: true, parsed })
+          } else {
+            onDone({ done: true, parsed: {} })
+          }
+        } catch {
+          onDone({ done: true, parsed: {} })
+        }
+        break
+      }
 
       buffer += decoder.decode(value, { stream: true })
       const lines = buffer.split('\n\n')
-      buffer = lines.pop()
+      buffer = lines.pop() // guarda fragmento incompleto
 
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
-        const payload = line.slice(6)
-        if (payload === '[DONE]') continue
+        const payload = line.slice(6).trim()
+        if (!payload || payload === '[DONE]') continue
+
         try {
           const json = JSON.parse(payload)
-          if (json.delta) onDelta(json.delta)
-          if (json.done)  onDone(json)
-        } catch { /* ignora linhas malformadas */ }
+          if (json.delta) {
+            accumulated += json.delta
+            onDelta(json.delta)
+          }
+          if (json.done) {
+            onDone(json)
+            return
+          }
+          if (json.error) {
+            throw new Error(json.error)
+          }
+        } catch (parseErr) {
+          // ignora linhas malformadas do SSE
+        }
       }
     }
-  },
+  } catch (err) {
+    // Se acumulou texto suficiente, tenta mostrar mesmo assim
+    if (accumulated.length > 100) {
+      try {
+        const match = accumulated.match(/\{[\s\S]*\}/)
+        if (match) {
+          onDone({ done: true, parsed: JSON.parse(match[0]) })
+          return
+        }
+      } catch {}
+    }
+    throw err
+  }
+},
 }
